@@ -14,6 +14,103 @@ export type Database = {
   }
   public: {
     Tables: {
+      card_analytics: {
+        Row: {
+          card_id: string
+          created_at: string | null
+          id: string
+          last_viewed_at: string | null
+          view_count: number | null
+        }
+        Insert: {
+          card_id: string
+          created_at?: string | null
+          id?: string
+          last_viewed_at?: string | null
+          view_count?: number | null
+        }
+        Update: {
+          card_id?: string
+          created_at?: string | null
+          id?: string
+          last_viewed_at?: string | null
+          view_count?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "card_analytics_card_id_fkey"
+            columns: ["card_id"]
+            isOneToOne: true
+            referencedRelation: "cards"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      cards: {
+        Row: {
+          card_name: string
+          company_logo_url: string | null
+          company_name: string | null
+          company_number: string | null
+          created_at: string | null
+          first_name: string
+          id: string
+          is_active: boolean | null
+          job_title: string | null
+          last_name: string
+          mobile_number: string | null
+          profile_photo_url: string | null
+          theme_color: string | null
+          updated_at: string | null
+          user_id: string
+          work_address: string | null
+        }
+        Insert: {
+          card_name: string
+          company_logo_url?: string | null
+          company_name?: string | null
+          company_number?: string | null
+          created_at?: string | null
+          first_name: string
+          id?: string
+          is_active?: boolean | null
+          job_title?: string | null
+          last_name: string
+          mobile_number?: string | null
+          profile_photo_url?: string | null
+          theme_color?: string | null
+          updated_at?: string | null
+          user_id: string
+          work_address?: string | null
+        }
+        Update: {
+          card_name?: string
+          company_logo_url?: string | null
+          company_name?: string | null
+          company_number?: string | null
+          created_at?: string | null
+          first_name?: string
+          id?: string
+          is_active?: boolean | null
+          job_title?: string | null
+          last_name?: string
+          mobile_number?: string | null
+          profile_photo_url?: string | null
+          theme_color?: string | null
+          updated_at?: string | null
+          user_id?: string
+          work_address?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "cards_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           avatar_url: string | null

@@ -2,14 +2,28 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { toast } from "sonner";
 import type { User } from "@supabase/supabase-js";
+import { Edit, Eye, Trash2, Share2, Plus } from "lucide-react";
+
+interface CardData {
+  id: string;
+  card_name: string;
+  first_name: string;
+  last_name: string;
+  job_title: string | null;
+  company_name: string | null;
+  profile_photo_url: string | null;
+  is_active: boolean;
+  view_count?: number;
+}
 
 const Dashboard = () => {
   const navigate = useNavigate();
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
+  const [cards, setCards] = useState<CardData[]>([]);
 
   useEffect(() => {
     const checkAuth = async () => {
@@ -21,6 +35,7 @@ const Dashboard = () => {
       }
       
       setUser(session.user);
+      await loadCards(session.user.id);
       setLoading(false);
     };
 
@@ -36,6 +51,75 @@ const Dashboard = () => {
 
     return () => subscription.unsubscribe();
   }, [navigate]);
+
+  const loadCards = async (userId: string) => {
+    try {
+      const { data: cardsData, error: cardsError } = await supabase
+        .from("cards")
+        .select("*")
+        .eq("user_id", userId)
+        .order("created_at", { ascending: false });
+
+      if (cardsError) throw cardsError;
+
+      const cardsWithAnalytics = await Promise.all(
+        (cardsData || []).map(async (card) => {
+          const { data: analytics } = await supabase
+            .from("card_analytics")
+            .select("view_count")
+            .eq("card_id", card.id)
+            .single();
+
+          return {
+            ...card,
+            view_count: analytics?.view_count || 0,
+          };
+        })
+      );
+
+      setCards(cardsWithAnalytics);
+    } catch (error) {
+      console.error("Error loading cards:", error);
+      toast.error("Failed to load cards");
+    }
+  };
+
+  const handleDeleteCard = async (cardId: string) => {
+    if (!confirm("Are you sure you want to delete this card?")) return;
+
+    try {
+      const { error } = await supabase
+        .from("cards")
+        .delete()
+        .eq("id", cardId);
+
+      if (error) throw error;
+
+      setCards(cards.filter(card => card.id !== cardId));
+      toast.success("Card deleted successfully");
+    } catch (error) {
+      console.error("Error deleting card:", error);
+      toast.error("Failed to delete card");
+    }
+  };
+
+  const handleShare = async (cardId: string) => {
+    const url = `${window.location.origin}/c/${cardId}`;
+    
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: "My Digital Card",
+          url: url,
+        });
+      } catch (error) {
+        console.error("Error sharing:", error);
+      }
+    } else {
+      await navigator.clipboard.writeText(url);
+      toast.success("Link copied to clipboard!");
+    }
+  };
 
   const handleSignOut = async () => {
     const { error } = await supabase.auth.signOut();
@@ -76,43 +160,92 @@ const Dashboard = () => {
           </p>
         </div>
 
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+        <div className="mb-6">
+          <Button 
+            onClick={() => navigate("/card/create")} 
+            variant="hero"
+            size="lg"
+          >
+            <Plus className="h-5 w-5 mr-2" />
+            Create New Card
+          </Button>
+        </div>
+
+        {cards.length === 0 ? (
           <Card>
-            <CardHeader>
-              <CardTitle>Your Cards</CardTitle>
-            </CardHeader>
-            <CardContent>
+            <CardContent className="pt-6 text-center py-12">
               <p className="text-muted-foreground mb-4">
                 You don't have any cards yet.
               </p>
-              <Button variant="hero" className="w-full">
+              <Button 
+                variant="default" 
+                onClick={() => navigate("/card/create")}
+              >
                 Create Your First Card
               </Button>
             </CardContent>
           </Card>
-
-          <Card>
-            <CardHeader>
-              <CardTitle>Contacts</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-muted-foreground">
-                No saved contacts yet.
-              </p>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <CardTitle>Analytics</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-muted-foreground">
-                View your card performance here.
-              </p>
-            </CardContent>
-          </Card>
-        </div>
+        ) : (
+          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+            {cards.map((card) => (
+              <Card key={card.id}>
+                <CardHeader>
+                  <div className="flex items-start justify-between">
+                    <div className="flex-1">
+                      <CardTitle className="text-lg">{card.card_name}</CardTitle>
+                      <p className="text-sm text-muted-foreground mt-1">
+                        {card.first_name} {card.last_name}
+                      </p>
+                      {card.job_title && (
+                        <p className="text-sm text-muted-foreground">
+                          {card.job_title}
+                        </p>
+                      )}
+                    </div>
+                    {card.profile_photo_url && (
+                      <img 
+                        src={card.profile_photo_url} 
+                        alt="Profile" 
+                        className="w-12 h-12 rounded-full object-cover"
+                      />
+                    )}
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-sm text-muted-foreground mb-4">
+                    <p>Views: {card.view_count || 0}</p>
+                    <p>Status: {card.is_active ? "Active" : "Inactive"}</p>
+                  </div>
+                </CardContent>
+                <CardFooter className="flex gap-2">
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => window.open(`/c/${card.id}`, '_blank')}
+                    className="flex-1"
+                  >
+                    <Eye className="h-4 w-4 mr-1" />
+                    View
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => handleShare(card.id)}
+                  >
+                    <Share2 className="h-4 w-4" />
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => handleDeleteCard(card.id)}
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                </CardFooter>
+              </Card>
+            ))}
+          </div>
+        )}
       </main>
     </div>
   );
