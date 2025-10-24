@@ -3,6 +3,7 @@ import { useParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { QRCodeDisplay } from "@/components/QRCodeDisplay";
+import { ContactForm } from "@/components/ContactForm";
 import { Phone, Building2, MapPin, Download, Share2 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -216,13 +217,8 @@ END:VCARD`;
               )}
             </div>
 
-            {/* QR Code */}
-            <div className="bg-background rounded-lg p-6 mb-6">
-              <QRCodeDisplay url={cardUrl} size={250} className="flex flex-col items-center" />
-            </div>
-
             {/* Action Buttons */}
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-2 gap-3 mb-6">
               <Button onClick={handleAddToContacts} variant="default" className="w-full">
                 <Download className="h-4 w-4 mr-2" />
                 Add to Contacts
@@ -231,6 +227,17 @@ END:VCARD`;
                 <Share2 className="h-4 w-4 mr-2" />
                 Share
               </Button>
+            </div>
+
+            {/* Contact Form */}
+            <ContactForm 
+              cardId={card.id} 
+              cardOwnerName={`${card.first_name} ${card.last_name}`}
+            />
+
+            {/* QR Code */}
+            <div className="bg-background rounded-lg p-6 mt-6">
+              <QRCodeDisplay url={cardUrl} size={250} className="flex flex-col items-center" />
             </div>
           </div>
         </div>
