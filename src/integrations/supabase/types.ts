@@ -111,6 +111,95 @@ export type Database = {
           },
         ]
       }
+      contacts: {
+        Row: {
+          card_id: string
+          card_owner_id: string
+          created_at: string | null
+          error_message: string | null
+          id: string
+          name: string
+          phone: string
+          sent_at: string | null
+          sent_status: string
+        }
+        Insert: {
+          card_id: string
+          card_owner_id: string
+          created_at?: string | null
+          error_message?: string | null
+          id?: string
+          name: string
+          phone: string
+          sent_at?: string | null
+          sent_status?: string
+        }
+        Update: {
+          card_id?: string
+          card_owner_id?: string
+          created_at?: string | null
+          error_message?: string | null
+          id?: string
+          name?: string
+          phone?: string
+          sent_at?: string | null
+          sent_status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "contacts_card_id_fkey"
+            columns: ["card_id"]
+            isOneToOne: false
+            referencedRelation: "cards"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contacts_card_owner_id_fkey"
+            columns: ["card_owner_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      message_logs: {
+        Row: {
+          api_response: Json | null
+          contact_id: string
+          created_at: string | null
+          id: string
+          status: string
+          updated_at: string | null
+          vonage_message_id: string | null
+        }
+        Insert: {
+          api_response?: Json | null
+          contact_id: string
+          created_at?: string | null
+          id?: string
+          status: string
+          updated_at?: string | null
+          vonage_message_id?: string | null
+        }
+        Update: {
+          api_response?: Json | null
+          contact_id?: string
+          created_at?: string | null
+          id?: string
+          status?: string
+          updated_at?: string | null
+          vonage_message_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "message_logs_contact_id_fkey"
+            columns: ["contact_id"]
+            isOneToOne: false
+            referencedRelation: "contacts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           avatar_url: string | null
