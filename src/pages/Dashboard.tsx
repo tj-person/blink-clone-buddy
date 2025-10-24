@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { toast } from "sonner";
 import type { User } from "@supabase/supabase-js";
 import { Edit, Eye, Trash2, Share2, Plus } from "lucide-react";
@@ -19,11 +20,20 @@ interface CardData {
   view_count?: number;
 }
 
+interface ContactData {
+  id: string;
+  name: string;
+  phone: string;
+  created_at: string;
+  card_name: string;
+}
+
 const Dashboard = () => {
   const navigate = useNavigate();
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const [cards, setCards] = useState<CardData[]>([]);
+  const [contacts, setContacts] = useState<ContactData[]>([]);
 
   useEffect(() => {
     const checkAuth = async () => {
@@ -36,6 +46,7 @@ const Dashboard = () => {
       
       setUser(session.user);
       await loadCards(session.user.id);
+      await loadContacts(session.user.id);
       setLoading(false);
     };
 
@@ -81,6 +92,37 @@ const Dashboard = () => {
     } catch (error) {
       console.error("Error loading cards:", error);
       toast.error("Failed to load cards");
+    }
+  };
+
+  const loadContacts = async (userId: string) => {
+    try {
+      const { data: contactsData, error } = await supabase
+        .from("contacts")
+        .select(`
+          id,
+          name,
+          phone,
+          created_at,
+          cards!inner(card_name)
+        `)
+        .eq("card_owner_id", userId)
+        .order("created_at", { ascending: false });
+
+      if (error) throw error;
+
+      const formattedContacts = (contactsData || []).map((contact: any) => ({
+        id: contact.id,
+        name: contact.name,
+        phone: contact.phone,
+        created_at: contact.created_at,
+        card_name: contact.cards.card_name,
+      }));
+
+      setContacts(formattedContacts);
+    } catch (error) {
+      console.error("Error loading contacts:", error);
+      toast.error("Failed to load contacts");
     }
   };
 
@@ -244,6 +286,38 @@ const Dashboard = () => {
                 </CardFooter>
               </Card>
             ))}
+          </div>
+        )}
+
+        {contacts.length > 0 && (
+          <div className="mt-12">
+            <h2 className="text-2xl font-bold mb-4">Contact Submissions</h2>
+            <Card>
+              <CardContent className="p-0">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Name</TableHead>
+                      <TableHead>Phone</TableHead>
+                      <TableHead>Card</TableHead>
+                      <TableHead>Submitted</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {contacts.map((contact) => (
+                      <TableRow key={contact.id}>
+                        <TableCell className="font-medium">{contact.name}</TableCell>
+                        <TableCell>{contact.phone}</TableCell>
+                        <TableCell>{contact.card_name}</TableCell>
+                        <TableCell>
+                          {new Date(contact.created_at).toLocaleDateString()}
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </CardContent>
+            </Card>
           </div>
         )}
       </main>
