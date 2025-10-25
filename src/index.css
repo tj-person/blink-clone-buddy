@@ -69,4 +69,55 @@ All colors MUST be HSL.
   .animate-float {
     animation: float 6s ease-in-out infinite;
   }
+
+  /* Connections Dashboard Styling */
+  .connections-dashboard {
+    @apply rounded-2xl p-6 space-y-6;
+    background: linear-gradient(180deg, hsl(220 20% 8%), hsl(220 18% 10%));
+    border: 1px solid hsl(220 15% 18%);
+  }
+
+  .gradient-text {
+    background: linear-gradient(90deg, #A97FFF, #F37363);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    font-size: 2rem;
+    font-weight: bold;
+  }
+
+  .stat-card {
+    @apply rounded-xl p-4 transition-all duration-300;
+    background: #1A1A1E;
+    border: 1px solid #2C2C31;
+  }
+
+  .stat-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(243, 115, 99, 0.15);
+  }
+
+  .map-card {
+    @apply rounded-2xl overflow-hidden;
+    border: 1px solid #2C2C31;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+  }
+
+  /* Mapbox popup styling override */
+  .mapboxgl-popup-content {
+    background: #1A1A1E !important;
+    color: #E8E8E8 !important;
+    border-radius: 12px !important;
+    padding: 16px !important;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.6) !important;
+  }
+
+  .mapboxgl-popup-close-button {
+    color: #F37363 !important;
+    font-size: 20px !important;
+  }
+
+  .mapboxgl-popup-tip {
+    border-top-color: #1A1A1E !important;
+  }
 }

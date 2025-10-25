@@ -11,6 +11,40 @@ interface ContactRequest {
   phone: string;
 }
 
+interface LocationData {
+  city: string;
+  state: string;
+  country: string;
+  latitude: number;
+  longitude: number;
+}
+
+async function getLocationFromIP(ip: string): Promise<LocationData | null> {
+  try {
+    if (ip === 'unknown' || !ip) return null;
+    
+    // Use ipapi.co free tier (1000 requests/day)
+    const response = await fetch(`https://ipapi.co/${ip}/json/`);
+    const data = await response.json();
+    
+    if (data.error) {
+      console.error('Geolocation API error:', data);
+      return null;
+    }
+    
+    return {
+      city: data.city,
+      state: data.region,
+      country: data.country_name,
+      latitude: data.latitude,
+      longitude: data.longitude
+    };
+  } catch (error) {
+    console.error('Geolocation failed:', error);
+    return null;
+  }
+}
+
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
@@ -25,6 +59,17 @@ Deno.serve(async (req) => {
     const { cardId, name, phone }: ContactRequest = await req.json();
 
     console.log('Received contact request:', { cardId, name, phone });
+
+    // Get client IP for geolocation
+    const clientIP = req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || 
+                     req.headers.get('x-real-ip') || 
+                     'unknown';
+    
+    console.log('Client IP:', clientIP);
+    
+    // Get location from IP
+    const location = await getLocationFromIP(clientIP);
+    console.log('Location data:', location);
 
     // Get card details
     const { data: card, error: cardError } = await supabase
@@ -58,7 +103,12 @@ Deno.serve(async (req) => {
         card_owner_id: card.user_id,
         name,
         phone,
-        sent_status: 'pending'
+        sent_status: 'pending',
+        latitude: location?.latitude,
+        longitude: location?.longitude,
+        city: location?.city,
+        state: location?.state,
+        country: location?.country
       })
       .select()
       .single();

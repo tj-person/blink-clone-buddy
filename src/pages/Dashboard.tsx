@@ -7,6 +7,8 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { toast } from "sonner";
 import type { User } from "@supabase/supabase-js";
 import { Edit, Eye, Trash2, Share2, Plus } from "lucide-react";
+import { QRCodeDisplay } from "@/components/QRCodeDisplay";
+import ConnectionsDashboard from "@/components/ConnectionsDashboard";
 
 interface CardData {
   id: string;
@@ -288,6 +290,9 @@ const Dashboard = () => {
             ))}
           </div>
         )}
+
+        {/* Connections Dashboard */}
+        {user && <ConnectionsDashboard user={user} className="my-12" />}
 
         {contacts.length > 0 && (
           <div className="mt-12">
