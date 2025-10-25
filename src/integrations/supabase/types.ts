@@ -115,35 +115,50 @@ export type Database = {
         Row: {
           card_id: string
           card_owner_id: string
+          city: string | null
+          country: string | null
           created_at: string | null
           error_message: string | null
           id: string
+          latitude: number | null
+          longitude: number | null
           name: string
           phone: string
           sent_at: string | null
           sent_status: string
+          state: string | null
         }
         Insert: {
           card_id: string
           card_owner_id: string
+          city?: string | null
+          country?: string | null
           created_at?: string | null
           error_message?: string | null
           id?: string
+          latitude?: number | null
+          longitude?: number | null
           name: string
           phone: string
           sent_at?: string | null
           sent_status?: string
+          state?: string | null
         }
         Update: {
           card_id?: string
           card_owner_id?: string
+          city?: string | null
+          country?: string | null
           created_at?: string | null
           error_message?: string | null
           id?: string
+          latitude?: number | null
+          longitude?: number | null
           name?: string
           phone?: string
           sent_at?: string | null
           sent_status?: string
+          state?: string | null
         }
         Relationships: [
           {
