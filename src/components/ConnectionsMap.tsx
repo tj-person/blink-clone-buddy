@@ -57,6 +57,86 @@ const ConnectionsMap = ({ contacts }: ConnectionsMapProps) => {
   useEffect(() => {
     if (!map.current || !mapLoaded || contacts.length === 0) return;
 
+    // Prepare GeoJSON data for heatmap
+    const geojsonData = {
+      type: 'FeatureCollection',
+      features: contacts
+        .filter(contact => contact.latitude && contact.longitude)
+        .map(contact => ({
+          type: 'Feature',
+          properties: {
+            name: contact.name,
+            phone: contact.phone,
+            city: contact.city,
+            state: contact.state,
+            card_name: contact.card_name,
+            created_at: contact.created_at
+          },
+          geometry: {
+            type: 'Point',
+            coordinates: [contact.longitude, contact.latitude]
+          }
+        }))
+    };
+
+    // Add or update heatmap source and layer
+    if (!map.current.getSource('contacts-heat')) {
+      map.current.addSource('contacts-heat', {
+        type: 'geojson',
+        data: geojsonData as any
+      });
+
+      map.current.addLayer({
+        id: 'contacts-heatmap',
+        type: 'heatmap',
+        source: 'contacts-heat',
+        paint: {
+          // Increase weight as diameter increases
+          'heatmap-weight': 1,
+          // Increase intensity as zoom level increases
+          'heatmap-intensity': [
+            'interpolate',
+            ['linear'],
+            ['zoom'],
+            0, 1,
+            9, 3
+          ],
+          // Color ramp for heatmap - uses theme colors
+          'heatmap-color': [
+            'interpolate',
+            ['linear'],
+            ['heatmap-density'],
+            0, 'rgba(79, 70, 229, 0)',
+            0.2, 'rgb(79, 70, 229)',
+            0.4, 'rgb(139, 92, 246)',
+            0.6, 'rgb(168, 85, 247)',
+            0.8, 'rgb(192, 132, 252)',
+            1, 'rgb(243, 115, 99)'
+          ],
+          // Adjust radius by zoom level
+          'heatmap-radius': [
+            'interpolate',
+            ['linear'],
+            ['zoom'],
+            0, 15,
+            9, 40
+          ],
+          // Transition from heatmap to circle layer by zoom level
+          'heatmap-opacity': [
+            'interpolate',
+            ['linear'],
+            ['zoom'],
+            7, 0.8,
+            9, 0.4
+          ]
+        }
+      });
+    } else {
+      // Update existing source
+      const source = map.current.getSource('contacts-heat') as mapboxgl.GeoJSONSource;
+      source.setData(geojsonData as any);
+    }
+
     // Clear existing markers
     const markers = document.querySelectorAll('.mapboxgl-marker');
     markers.forEach(marker => marker.remove());
