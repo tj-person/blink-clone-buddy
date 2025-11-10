@@ -26,7 +26,7 @@ const ConnectionsMap = ({ contacts }: ConnectionsMapProps) => {
   useEffect(() => {
     if (!mapContainer.current || map.current) return;
 
-    const token = import.meta.env.VITE_MAPBOX_ACCESS_TOKEN;
+    const token = import.meta.env.VITE_MAPBOX_ACCESS_TOKEN || 'pk.eyJ1IjoidHBlcnNvbjI3IiwiYSI6ImNtaDR6c3djaDAyaXoyam9hZTk3MDBubmwifQ.9WVAxdb_pfs_hMoDaZBAHg';
     if (!token) {
       console.error('Mapbox access token not configured');
       return;
@@ -204,18 +204,6 @@ const ConnectionsMap = ({ contacts }: ConnectionsMapProps) => {
     }
   }, [contacts, mapLoaded]);
 
-  if (!import.meta.env.VITE_MAPBOX_ACCESS_TOKEN) {
-    return (
-      <div className="flex items-center justify-center h-[520px] bg-card rounded-2xl border border-border">
-        <div className="text-center p-8">
-          <p className="text-muted-foreground">Mapbox access token not configured</p>
-          <p className="text-sm text-muted-foreground mt-2">
-            Please add your Mapbox token to view the connections map
-          </p>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div ref={mapContainer} className="w-full h-[520px] md:h-[520px] rounded-2xl" />
